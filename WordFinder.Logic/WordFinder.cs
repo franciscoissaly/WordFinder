@@ -1,12 +1,22 @@
 ﻿namespace WordFinder.Logic
 {
+    /// <summary>
+    /// Manages the searching of arbitrary strings within the horizontal and vertical lines of a given character matrix. 
+    /// </summary>
     public class WordFinder
     {
-        public int MaxRowsCount = 64;
-        public int MaxColumnsCount = 64;
+        public const int MaxRowsCount = 64;
+        public const int MaxColumnsCount = 64;
 
         private readonly char[,] _matrix;
 
+
+        /// <summary>
+        /// Initializes a new instance with information for the internal character matrix to search in.
+        /// </summary>
+        /// <param name="matrix">A non empty collection of strings representing rows in the character matrix. 
+        /// All the strings must be of the same length and contain only letters</param>
+        /// <exception cref="ArgumentException"></exception>
         public WordFinder(IEnumerable<string> matrix)
         {
             ArgumentNullException.ThrowIfNull(matrix);
@@ -41,6 +51,7 @@
 
                 if (_matrix is null)
                 {
+                    // Create the internal matrix
                     columnsCount = rowStringLength;
                     _matrix = new char[rowsCount, columnsCount];
                 }
@@ -50,6 +61,7 @@
                         + $" Expected {columnsCount} characters."
                         , nameof(matrix));
 
+                // Populate the matrix's current row
                 for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
                 {
                     char character = rowString[columnIndex];
@@ -59,7 +71,7 @@
                             + " Expected a letter."
                             , nameof(matrix));
 
-                    _matrix[rowIndex, columnIndex] = char.ToLower(character);
+                    _matrix[rowIndex, columnIndex] = char.ToLower(character);  // To avoid case difference (and convert to lower once)
                 }
                 rowIndex++;
             }
@@ -69,15 +81,21 @@
         }
 
 
+        /// <summary>
+        /// Searches the passed strings within the matrix lines, horizontally and vertically.
+        /// </summary>
+        /// <param name="wordStream">A collection of words to be searched</param>
+        /// <returns>The top 10 found words with the highest number of matches</returns>
         public IEnumerable<string> Find(IEnumerable<string> wordStream)
         {
             ArgumentNullException.ThrowIfNull(wordStream);
 
-            var matchesByWord = new Dictionary<string, int>();
+            var matchesByWord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
 
             foreach (var word in wordStream)
-                if (!string.IsNullOrEmpty(word) && !matchesByWord.ContainsKey(word))
-                    matchesByWord.Add(word, CountMatches(word));
+                if (!string.IsNullOrEmpty(word)) // Skip empty words
+                    if (!matchesByWord.ContainsKey(word)) // Skip already processed words
+                        matchesByWord.Add(word, CountMatches(word));
 
             return (from pair in matchesByWord
                     where pair.Value > 0
@@ -87,14 +105,26 @@
         }
 
 
+        /// <summary>
+        /// Searches the passed word within the internal matrix in both orientations
+        /// </summary>
+        /// <param name="word">The word to search</param>
+        /// <returns>The number of the word instances within the internal matrix lines</returns>
         private int CountMatches(string word)
         {
-            string normalizedWord = word.ToLower();
-            return CountMatchesInMatrixLines(normalizedWord, transposed: false) //horizontally
-                 + CountMatchesInMatrixLines(normalizedWord, transposed: true); //vertically
+            string normalizedWord = word.ToLower(); // To avoid case difference (converting to lower once per word)
+            return CountMatchesInMatrixLines(normalizedWord, transposed: false) // Search horizontally
+                 + CountMatchesInMatrixLines(normalizedWord, transposed: true); // Search vertically
         }
 
 
+        /// <summary>
+        /// Iterates the matrix lines testing each position within the line as a candidate start for a match.
+        /// Skips testing for words too long to fit in the matrix.
+        /// </summary>
+        /// <param name="word">The word to search</param>
+        /// <param name="transposed">If true, treats the matrix as transposed, searching within columns instead of rows</param>
+        /// <returns>The number of the word instances within the internal matrix lines</returns>
         private int CountMatchesInMatrixLines(string word, bool transposed)
         {
             int linesLength = GetMatrixLinesLength(transposed);
@@ -104,6 +134,7 @@
 
             int linesCount = GetMatrixLinesCount(transposed);
             int matchesCount = 0;
+
             for (int lineNumber = 0; lineNumber < linesCount; lineNumber++)
                 for (int startingPosition = 0; startingPosition <= lastViablePosition; startingPosition++)
                     if (IsPresentInMatrixLine(word, lineNumber, startingPosition, transposed))
@@ -113,14 +144,23 @@
         }
 
 
+        /// <summary>
+        /// Checks whether characters in the passed word match the characters in the specified matrix line, 
+        /// starting from the specified position.
+        /// </summary>
+        /// <param name="word">The word to search</param>
+        /// <param name="lineNumber">The zero-based index of the line to search in</param>
+        /// <param name="startingPosition">The zero-based index of the character, within the specified line, to start searching from</param>
+        /// <param name="transposed">If true, treats the matrix as transposed, searching within columns instead of rows</param>
+        /// <returns>True if the word matches the characters in the matrix, starting from the specified position</returns>
         private bool IsPresentInMatrixLine(string word, int lineNumber, int startingPosition, bool transposed)
         {
             int currentPosition = 0;
             foreach (char wordChar in word)
             {
                 char lineChar = GetCharFromMatrix(lineNumber, startingPosition + currentPosition, transposed);
-                if (lineChar != wordChar)
-                    return false;
+                if (lineChar != wordChar) // Non-match
+                    return false; 
 
                 currentPosition++;
             }
@@ -128,6 +168,13 @@
         }
 
 
+        /// <summary>
+        /// Reads from the internal matrix, the character in the specified line and position.
+        /// </summary>
+        /// <param name="lineNumber">The zero-based index of the line to access</param>
+        /// <param name="position">The zero-based index of the character to access, within the specified line</param>
+        /// <param name="transposed">If true, treats the matrix as transposed, swapping columns and rows</param>
+        /// <returns>The specified character from the matrix</returns>
         private char GetCharFromMatrix(int lineNumber, int position, bool transposed)
         {
             if (transposed)
@@ -137,19 +184,30 @@
         }
 
 
+        /// <summary>
+        /// Gets the number of characters of the lines in the matrix.
+        /// </summary>
+        /// <param name="transposed">If true, treats the matrix as transposed, swapping columns and rows</param>
+        /// <returns>The amount of rows if transposed; the amount of columns, otherwise</returns>
         private int GetMatrixLinesLength(bool transposed)
         {
             return GetMatrixLinesCount(!transposed);
         }
 
 
+        /// <summary>
+        /// Gets the number lines in the matrix
+        /// </summary>
+        /// <param name="transposed">If true, treats the matrix as transposed, swapping columns and rows</param>
+        /// <returns>The amount of columns if transposed; the amount of rows, otherwise</returns>
         private int GetMatrixLinesCount(bool transposed)
         {
             int rank = 0;//rows
             if (transposed)
                 rank = 1;//columns
 
-            return _matrix.GetLength(rank);
+            // read the size for the corresponding dimension in the 2-dimensional array
+            return _matrix.GetLength(rank); 
         }
     }
 }

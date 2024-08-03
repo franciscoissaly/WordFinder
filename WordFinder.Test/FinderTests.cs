@@ -6,7 +6,7 @@ namespace WordFinder.Test
     public class FinderTests
     {
         [Test]
-        public void FindTheThreeFromTheExample()
+        public void FindTheWordsFromTheRequirementExample()
         {
             var finder = new WordFinder.Logic.WordFinder(
             [
@@ -25,7 +25,5 @@ namespace WordFinder.Test
             Assert.That(found, Has.Member("chill"));
             Assert.That(found, Has.No.Member("snow"));
         }
-
-
     }
 }
