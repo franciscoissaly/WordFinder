@@ -38,7 +38,14 @@ namespace WordFinder.Test
                 "u v d x y l"
             ]);
 
-            var search = _helper.ExecuteSearch(finder, ["cold", "Wind", "snow", "cold", "chill"]);
+            var search = _helper.ExecuteSearch(finder,
+                [
+                    "cold",
+                    "Wind", // uppercase
+                    "snow", // missing
+                    "cold", // duplicated
+                    "chill"
+                ]);
 
             _helper.AssertFindings(search,
                 expectedWords: ["cold",
@@ -55,33 +62,47 @@ namespace WordFinder.Test
         [Test]
         public void ExampleScenarioExtendedSizeTest()
         {
-            var finder = _helper.PrepareFinder(columnsCloningIterations: 9,
-            matrixStrings: 
-            [
-                "a b c d c c",
-                "o t w b o h",
-                "c h i l l i",
-                "p q n o d l",
-                "u v d w y l",
-                "w x F b x c", // uppercase F
-                "a b i u h h",
-                "r g r r o i",
-                "m h e n t l",
-                "o h e a t l",
-                "g s p r i n",
-                "a n a n a n"
-            ]);
+            var finder = _helper.PrepareFinder(
+                columnsCloningIterations: 9, // concatenate many clones of the following matrix to create a bigger one, and enable rotated words
+                matrixStrings:
+                [
+                    "a b c d c c",
+                    "o t w b o h",
+                    "c h i l l i",
+                    "p q n o d l",
+                    "u v d w y l",
+                    "w x F b x c", // uppercase F
+                    "a b i u h h",
+                    "r g r r o i",
+                    "m h e n t l",
+                    "o h e a t l",
+                    "g s p r i n",
+                    "a n a n a n"
+                ]);
 
             var search = _helper.ExecuteSearch(finder,
-                ["cold", "Wind", "snow", "cold", "chill",
-                 "heat", "blow", "fire", "hot", "burn", "warm",
-                 "spring", "anana"
+                [ // unless specified otherwise, words are present 1 time per matrix clone
+                    "cold", 
+                    "Wind", // uppercase
+                    "snow", // missing
+                    "cold", // duplicated
+                    "chill", // present 3 times per matrix clone
+                    
+                    "heat",
+                    "blow", 
+                    "fire", 
+                    "hot", // present 1 time per matrix clone + 1 time between clones concatenations
+                    "burn", 
+                    "warm", 
+                    
+                    "spring", // present only between clones concatenation
+                    "anana" // present 1 time per matrix clone + 2 times between clones concatenations
                 ]);
 
             var notExpected = new string[]
             {
                 "snow", //not found
-                "spring" // eleventh place in matches ranking
+                "spring" // 11th place in matches ranking
             };
 
             _helper.AssertFindings(search,
