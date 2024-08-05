@@ -40,7 +40,7 @@ namespace WordFinder.Logic
 
             foreach (string rowString in matrix)
             {
-                if (string.IsNullOrEmpty(rowString))
+                if (string.IsNullOrWhiteSpace(rowString))
                     throw new ArgumentException(
                         $"Invalid empty string for row {rowIndex + 1}."
                         , nameof(matrix));
@@ -100,7 +100,7 @@ namespace WordFinder.Logic
             {
                 var matchesByWord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
                 foreach (var word in wordStream)
-                    if (!string.IsNullOrEmpty(word)) // Skip empty words
+                    if (!string.IsNullOrWhiteSpace(word)) // Skip empty words
                         if (!matchesByWord.ContainsKey(word)) // Skip already processed words
                             matchesByWord.Add(word, CountMatches(word));
                 matches = matchesByWord;
@@ -114,7 +114,7 @@ namespace WordFinder.Logic
                 var matchesByWord = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
                 Parallel.ForEach(wordStream, (word) =>
                 {
-                    if (!string.IsNullOrEmpty(word)) // Skip empty words
+                    if (!string.IsNullOrWhiteSpace(word)) // Skip empty words
                         matchesByWord.GetOrAdd(word, CountMatches(word));
                 });
                 matches = matchesByWord;
