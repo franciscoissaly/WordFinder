@@ -74,11 +74,11 @@ namespace WordFinder.Test
 
             // clone columns 10 times
             var matrix = new List<string>();
-            foreach (var str in matrixStrings)
+            foreach (var rowString in matrixStrings)
             {
                 var sb = new StringBuilder();
                 for (int i = 0; i < 10; i++)
-                    sb.Append(str.Replace(" ","")); // remove spaces
+                    sb.Append(rowString.Replace(" ","")); // remove spaces
                 matrix.Add(sb.ToString());
             }        
             var finder = new WordFinder.Logic.WordFinder(matrix);
@@ -91,16 +91,16 @@ namespace WordFinder.Test
             Assert.That(mostFound, Is.Not.Null);
             Assert.That(mostFound.Count, Is.EqualTo(10)); // top ten by matches number
 
-            var nonReturned = new string[]
+            var notExpected = new string[]
             { 
                 "snow", //not found
                 "spring" // eleventh place in matches ranking
             };
-            foreach (var word in nonReturned)
-                Assert.That(mostFound, Has.No.Member(word)); // what should not be there
+            foreach (var unexpectedWord in notExpected)
+                Assert.That(mostFound, Has.No.Member(unexpectedWord)); 
 
-            foreach (var word in words.Except(nonReturned))
-                Assert.That(mostFound, Has.Member(word)); // what should be there
+            foreach (var expectedWord in words.Except(notExpected))
+                Assert.That(mostFound, Has.Member(expectedWord)); 
 
             // check that the order agrees with the number of matches
             var mostMatching = new string[] {"chill", "anana", "hot"};
