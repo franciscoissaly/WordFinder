@@ -59,15 +59,15 @@ namespace WordFinder.Test
             var matrixStrings = new string[] 
             {
                 "a b c d c c",
-                "o t w i o h",
+                "o t w b o h",
                 "c h i l l i",
-                "p q n s d l",
-                "u v d b y l",
-                "w x F u x c", // uppercase F
-                "a b i r h h",
-                "r g r n o i",
-                "m h e a t l",
-                "o w n s b l",
+                "p q n o d l",
+                "u v d w y l",
+                "w x F b x c", // uppercase F
+                "a b i u h h",
+                "r g r r o i",
+                "m h e n t l",
+                "o h e a t l",
                 "g s p r i n",
                 "a n a n a n"
             };

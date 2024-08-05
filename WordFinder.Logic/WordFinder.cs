@@ -1,4 +1,7 @@
-﻿namespace WordFinder.Logic
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+
+namespace WordFinder.Logic
 {
     /// <summary>
     /// Manages the searching of arbitrary strings within the horizontal and vertical lines of a given character matrix. 
@@ -90,14 +93,34 @@
         {
             ArgumentNullException.ThrowIfNull(wordStream);
 
-            var matchesByWord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
+            IEnumerable<KeyValuePair<string, int>> matches;
 
-            foreach (var word in wordStream)
-                if (!string.IsNullOrEmpty(word)) // Skip empty words
-                    if (!matchesByWord.ContainsKey(word)) // Skip already processed words
-                        matchesByWord.Add(word, CountMatches(word));
+            bool doSequentialSearch = true;
+            if (doSequentialSearch)
+            {
+                var matchesByWord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
+                foreach (var word in wordStream)
+                    if (!string.IsNullOrEmpty(word)) // Skip empty words
+                        if (!matchesByWord.ContainsKey(word)) // Skip already processed words
+                            matchesByWord.Add(word, CountMatches(word));
+                matches = matchesByWord;
+            }
+            else
+            {
+                // Alternative parallel approach. 
+                // Dismissed for actually being much slower than going non-parallel,
+                // possibly be due to the small size of the tested wordStreams.
+                // More benchmarking should be done to find a sweet spot for switching between algorithms.
+                var matchesByWord = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
+                Parallel.ForEach(wordStream, (word) =>
+                {
+                    if (!string.IsNullOrEmpty(word)) // Skip empty words
+                        matchesByWord.GetOrAdd(word, CountMatches(word));
+                });
+                matches = matchesByWord;
+            }
 
-            return (from pair in matchesByWord
+            return (from pair in matches
                     where pair.Value > 0
                     orderby pair.Value descending
                     select pair.Key
@@ -160,7 +183,7 @@
             {
                 char lineChar = GetCharFromMatrix(lineNumber, startingPosition + currentPosition, transposed);
                 if (lineChar != wordChar) // Non-match
-                    return false; 
+                    return false;
 
                 currentPosition++;
             }
@@ -207,7 +230,7 @@
                 rank = 1;//columns
 
             // read the size for the corresponding dimension in the 2-dimensional array
-            return _matrix.GetLength(rank); 
+            return _matrix.GetLength(rank);
         }
     }
 }
