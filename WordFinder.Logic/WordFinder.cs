@@ -226,12 +226,20 @@ namespace WordFinder.Logic
         /// <returns>The amount of columns if transposed; the amount of rows, otherwise</returns>
         private int GetMatrixLinesCount(bool transposed)
         {
-            int rank = 0;//rows
             if (transposed)
-                rank = 1;//columns
-
-            // read the size for the corresponding dimension in the 2-dimensional array
-            return _matrix.GetLength(rank);
+                return Columns;
+            else
+                return Rows;
         }
+
+        /// <summary>
+        /// Get the number of rows in the internal matrix
+        /// </summary>
+        public int Rows => _matrix.GetLength(0);
+
+        /// <summary>
+        /// Get the number of columns in the internal matrix
+        /// </summary>
+        public int Columns => _matrix.GetLength(1);
     }
 }
