@@ -109,8 +109,9 @@ namespace WordFinder.Logic
             {
                 // Alternative parallel approach. 
                 // Dismissed for actually being much slower than going non-parallel,
-                // possibly be due to the small size of the tested wordStreams.
-                // More benchmarking should be done to find a sweet spot for switching between algorithms.
+                // possibly due to the small size of the wordStreams used for testing.
+                // More benchmarking should be done to find a convenient size of wordStream for switching between algorithms.
+
                 var matchesByWord = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);// Avoid case difference while searching keys
                 Parallel.ForEach(wordStream, (word) =>
                 {
