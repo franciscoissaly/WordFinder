@@ -50,7 +50,8 @@ namespace WordFinder.Test
             _helper.AssertFindings(search,
                 expectedWords: ["cold",
                                 "Wind", // case insensitive finding
-                                "chill"],
+                                "chill"
+                                ],
                 expectedFoundCount: 3, // no duplicate members
                 unexpectedWords: ["snow"],
                 expectedRanking: ["chill"]); // highest matches number

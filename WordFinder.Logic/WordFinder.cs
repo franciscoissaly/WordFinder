@@ -13,6 +13,16 @@ namespace WordFinder.Logic
 
         private readonly char[,] _matrix;
 
+        /// <summary>
+        /// Get the number of rows in the internal matrix
+        /// </summary>
+        public int Rows { get; }
+
+        /// <summary>
+        /// Get the number of columns in the internal matrix
+        /// </summary>
+        public int Columns { get; }
+
 
         /// <summary>
         /// Initializes a new instance with information for the internal character matrix to search in.
@@ -24,20 +34,18 @@ namespace WordFinder.Logic
         {
             ArgumentNullException.ThrowIfNull(matrix);
 
-            int rowsCount = matrix.Count();
-            if (rowsCount == 0)
+            Rows = matrix.Count();
+            if (Rows == 0)
                 throw new ArgumentException(
                     "Invalid empty matrix. Expected at least 1 row."
                     , nameof(matrix));
 
-            else if (rowsCount > MaxRowsCount)
+            else if (Rows > MaxRowsCount)
                 throw new ArgumentException(
-                    $"Invalid rows count {rowsCount}. Expected at most {MaxRowsCount} rows."
+                    $"Invalid rows count {Rows}. Expected at most {MaxRowsCount} rows."
                     , nameof(matrix));
 
-            int columnsCount = 0;
             int rowIndex = 0;
-
             foreach (string rowString in matrix)
             {
                 if (string.IsNullOrWhiteSpace(rowString))
@@ -55,19 +63,19 @@ namespace WordFinder.Logic
                 if (_matrix is null)
                 {
                     // Create the internal matrix
-                    columnsCount = rowStringLength;
-                    _matrix = new char[rowsCount, columnsCount];
+                    Columns = rowStringLength;
+                    _matrix = new char[Rows, Columns];
                 }
-                else if (rowStringLength != columnsCount)
+                else if (rowStringLength != Columns)
                     throw new ArgumentException(
                         $"Invalid length {rowStringLength} on string '{rowString}' for row {rowIndex + 1}."
-                        + $" Expected {columnsCount} characters."
+                        + $" Expected {Columns} characters."
                         , nameof(matrix));
 
                 // Populate the matrix's current row
-                for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+                int columnIndex = 0;
+                foreach (char character in rowString)
                 {
-                    char character = rowString[columnIndex];
                     if (!char.IsLetter(character))
                         throw new ArgumentException(
                             $"Invalid character '{character}' for column {columnIndex + 1} on string '{rowString}' for row {rowIndex + 1}."
@@ -75,7 +83,9 @@ namespace WordFinder.Logic
                             , nameof(matrix));
 
                     _matrix[rowIndex, columnIndex] = char.ToLower(character);  // To avoid case difference (and convert to lower once)
+                    columnIndex++;
                 }
+
                 rowIndex++;
             }
 
@@ -209,7 +219,7 @@ namespace WordFinder.Logic
 
 
         /// <summary>
-        /// Gets the number of characters of the lines in the matrix.
+        /// Gets the number of characters per line in the matrix.
         /// </summary>
         /// <param name="transposed">If true, treats the matrix as transposed, swapping columns and rows</param>
         /// <returns>The amount of rows if transposed; the amount of columns, otherwise</returns>
@@ -220,10 +230,10 @@ namespace WordFinder.Logic
 
 
         /// <summary>
-        /// Gets the number lines in the matrix
+        /// Gets the number of lines in the matrix
         /// </summary>
         /// <param name="transposed">If true, treats the matrix as transposed, swapping columns and rows</param>
-        /// <returns>The amount of columns if transposed; the amount of rows, otherwise</returns>
+        /// <returns>The amount of columns if transposed; otherwise, the amount of rows </returns>
         private int GetMatrixLinesCount(bool transposed)
         {
             if (transposed)
@@ -231,15 +241,5 @@ namespace WordFinder.Logic
             else
                 return Rows;
         }
-
-        /// <summary>
-        /// Get the number of rows in the internal matrix
-        /// </summary>
-        public int Rows => _matrix.GetLength(0);
-
-        /// <summary>
-        /// Get the number of columns in the internal matrix
-        /// </summary>
-        public int Columns => _matrix.GetLength(1);
     }
 }
